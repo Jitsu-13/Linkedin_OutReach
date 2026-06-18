@@ -1,0 +1,110 @@
+# ============================================================
+# LinkedIn Outreach Automation — Configuration File
+# All tunables in one place. No hardcoded values in code.
+# ============================================================
+
+linkedin:
+  # Maximum connection requests per run
+  max_requests_per_run: 25
+  
+  # Random delay between profile automation cycles (seconds)
+  # The spec says 120-300s; we use this as the configurable range
+  delay_min_seconds: 120
+  delay_max_seconds: 300
+  
+  # In-page action delays (seconds)
+  action_delay_min: 2
+  action_delay_max: 8
+  
+  # Typing speed (milliseconds per keystroke)
+  typing_delay_min_ms: 50
+  typing_delay_max_ms: 150
+  
+  # Engagement settings
+  posts_to_like: 3
+  posts_to_comment: 1
+  
+  # Safety: pause automation if these thresholds are hit
+  max_errors_before_pause: 3
+  pause_duration_minutes: 30
+
+llm:
+  # Provider: openai | anthropic | nvidia | openrouter
+  provider: "openai"
+  
+  # Model identifier (provider-specific)
+  model: "gpt-4o-mini"
+  
+  # Character limits for connection notes
+  note_max_chars_standard: 200
+  note_max_chars_premium: 300
+  
+  # Default character limit to use (standard or premium)
+  default_char_limit: 300
+  
+  # LLM temperature for note generation
+  temperature: 0.7
+  
+  # LLM temperature for review pass (lower = stricter review)
+  review_temperature: 0.3
+  
+  # Provider-specific base URLs
+  nvidia_base_url: "https://integrate.api.nvidia.com/v1"
+  openrouter_base_url: "https://openrouter.ai/api/v1"
+
+sheets:
+  # Google Sheets spreadsheet ID (overridden by .env)
+  spreadsheet_id: ""
+  
+  # Worksheet name within the spreadsheet
+  worksheet_name: "Targets"
+  
+  # Column mapping (0-indexed)
+  columns:
+    url: "linkedin_url"
+    name: "name"
+    company: "company"
+    role: "role"
+    custom_context: "custom_context"
+    status: "status"
+    note_used: "note_used"
+    sent_at: "sent_at"
+    accepted_at: "accepted_at"
+    withdrawn_at: "withdrawn_at"
+    comment_posted: "comment_posted"
+    posts_liked: "posts_liked"
+
+followup:
+  # How often to run the follow-up job (days)
+  check_interval_days: 14
+  
+  # Withdraw pending requests older than this (days)
+  withdraw_after_days: 14
+
+browser:
+  # Run in headed mode (recommended for anti-detection)
+  headless: false
+  
+  # Persistent browser profile directory
+  user_data_dir: "./browser_data"
+  
+  # Browser viewport
+  viewport_width: 1366
+  viewport_height: 768
+  
+  # Screenshot on failure
+  screenshot_on_failure: true
+  screenshot_dir: "./data/screenshots"
+
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  level: "INFO"
+  
+  # Log file path
+  file: "./data/logs/outreach.log"
+  
+  # Max log file size before rotation (MB)
+  rotation_mb: 10
+  
+  # How many rotated files to keep
+  retention_count: 5

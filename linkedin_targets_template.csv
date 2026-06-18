@@ -1,0 +1,4 @@
+linkedin_url,name,company,role,custom_context,status,note_used,sent_at,accepted_at,withdrawn_at,comment_posted,posts_liked
+https://www.linkedin.com/in/example-profile-1/,Jane Smith,Acme Corp,CTO,Met at AI conference 2024,,,,,,
+https://www.linkedin.com/in/example-profile-2/,John Doe,TechStart Inc,Engineering Manager,Mutual connection with Alex,,,,,,
+https://www.linkedin.com/in/example-profile-3/,Alice Johnson,DataFlow Labs,Senior ML Engineer,Interesting paper on transformers,,,,,,

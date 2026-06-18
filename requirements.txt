@@ -1,0 +1,36 @@
+# ============================================================
+# LinkedIn Outreach Automation — Dependencies
+# ============================================================
+
+# Browser automation
+playwright==1.52.0
+playwright-stealth==1.0.6
+
+# Google Sheets
+gspread==6.1.4
+google-auth==2.38.0
+
+# LLM API clients
+openai==1.82.0
+anthropic==0.52.0
+httpx==0.28.1
+
+# Configuration
+pydantic==2.11.3
+pydantic-settings==2.9.1
+python-dotenv==1.1.0
+pyyaml==6.0.2
+
+# Scheduling
+APScheduler==3.10.4
+SQLAlchemy==2.0.36
+
+# Logging
+loguru==0.7.3
+
+# Utilities
+faker==37.1.0
+Pillow==11.2.1
+
+# CLI
+click==8.2.1

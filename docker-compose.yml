@@ -1,0 +1,40 @@
+services:
+  # ── Outreach Job ──
+  # Runs the main connection request pipeline
+  outreach:
+    build: .
+    container_name: linkedin-outreach
+    command: python main.py
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./browser_data:/app/browser_data
+      - ./credentials:/app/credentials
+      - ./config:/app/config
+    # Headed mode requires X11 forwarding (Linux)
+    # Uncomment the following for headed mode on Linux:
+    # environment:
+    #   - DISPLAY=${DISPLAY}
+    # volumes:
+    #   - /tmp/.X11-unix:/tmp/.X11-unix
+    restart: "no"
+
+  # ── Follow-up Job ──
+  # Scheduled check for acceptance / withdrawal
+  followup:
+    build: .
+    container_name: linkedin-followup
+    command: python followup.py --schedule
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./browser_data:/app/browser_data
+      - ./credentials:/app/credentials
+      - ./config:/app/config
+    restart: unless-stopped
+
+volumes:
+  data:
+  browser_data:

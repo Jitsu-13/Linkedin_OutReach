@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+venv/
+.venv/
+env/
+
+# Environment & Credentials
+.env
+credentials/
+*.json
+!linkedin_targets_template.csv
+!config/config.yaml
+
+# Browser Data (persistent session)
+browser_data/
+
+# Runtime Data
+data/state.db
+data/screenshots/
+data/logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
