@@ -182,7 +182,7 @@ async def run_outreach(
 
         # ── Process each target ──
         for i, target in enumerate(targets):
-            profile_url = target.get("linkedin_url", "")
+            profile_url = target.get("profile_url", "")
             row_number = target.get("_row_number", 0)
             target_name = target.get("name", "Unknown")
 
@@ -211,9 +211,9 @@ async def run_outreach(
                     # Still generate the note for testing
                     profile_context = {
                         "name": target_name,
-                        "headline": target.get("role", ""),
+                        "headline": target.get("headline", ""),
                         "company": target.get("company", ""),
-                        "current_role": target.get("role", ""),
+                        "current_role": target.get("current_role", ""),
                     }
                     note_result = await llm.generate_note(
                         profile_context=profile_context,

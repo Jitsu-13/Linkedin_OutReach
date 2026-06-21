@@ -31,7 +31,7 @@ linkedin:
 llm:
   # Provider: openai | anthropic | nvidia | openrouter
   provider: "openai"
-  
+
   # Model identifier (provider-specific)
   model: "gpt-4o-mini"
   
@@ -54,23 +54,23 @@ llm:
 
 sheets:
   # Google Sheets spreadsheet ID (overridden by .env)
-  spreadsheet_id: ""
-  
+  spreadsheet_id: "1Uu1d16MTv2jy7DmcZMKtQPXy4tvdMlhb9YzzGbdoa-0"
+
   # Worksheet name within the spreadsheet
-  worksheet_name: "Targets"
-  
-  # Column mapping (0-indexed)
+  worksheet_name: "sheet1"
+
+  # Column mapping — maps internal keys to your actual sheet column headers
   columns:
-    url: "linkedin_url"
+    url: "profile_url"
     name: "name"
     company: "company"
-    role: "role"
+    role: "current_role"
     custom_context: "custom_context"
     status: "status"
-    note_used: "note_used"
-    sent_at: "sent_at"
-    accepted_at: "accepted_at"
-    withdrawn_at: "withdrawn_at"
+    note_used: "final_note"
+    sent_at: "sent_timestamp"
+    accepted_at: "accepted_timestamp"
+    withdrawn_at: "withdrawn_timestamp"
     comment_posted: "comment_posted"
     posts_liked: "posts_liked"
 

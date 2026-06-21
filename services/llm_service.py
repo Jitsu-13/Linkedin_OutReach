@@ -155,6 +155,10 @@ class LLMService:
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(url, json=payload, headers=headers)
+            if not response.is_success:
+                logger.error(
+                    f"Anthropic API {response.status_code} — body: {response.text}"
+                )
             response.raise_for_status()
             data = response.json()
 
