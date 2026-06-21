@@ -22,14 +22,25 @@ from utils.retry import with_retry
 
 SELECTORS = {
     "name": [
+        # LinkedIn's current layout (2025+) uses h2 for the profile name
+        "div[aria-label*='Verified Profile'] h2",
+        "div[aria-label*='Profile'] h2",
+        "h2.a54c0ea5",
+        "h2[class*='a54c0ea5']",
+        # Older layout used h1 — keep as fallback
         "h1.text-heading-xlarge",
-        "h1.inline.t-24",
+        "h1[class*='heading-xlarge']",
+        "h1[class*='t-24']",
         ".pv-text-details__left-panel h1",
         "section.pv-top-card h1",
         ".ph5 h1",
+        "main h1",
+        "h2",  # broad h2 fallback
+        "h1",  # broad h1 fallback
     ],
     "headline": [
         ".text-body-medium.break-words",
+        "div[class*='text-body-medium'][class*='break-words']",
         ".pv-text-details__left-panel .text-body-medium",
         "div.text-body-medium",
         ".ph5 .text-body-medium",
@@ -136,9 +147,20 @@ class ProfileAgent:
         """
         logger.info(f"🔍 Extracting profile context: {profile_url}")
 
-        # Navigate to the profile
-        await self._browser.safe_navigate(profile_url, timeout=20000)
-        await action_delay(2, 4)
+        # Navigate and wait for full page load (not just DOM parse)
+        await self._browser.safe_navigate(profile_url, timeout=60000, wait_until="load")
+
+        # Give React time to render components after the load event
+        await action_delay(4, 6)
+
+        # Wait up to 30s for the name element (h2 on new layout, h1 on old)
+        try:
+            await self._browser.page.wait_for_selector("h1, h2", timeout=30000)
+            logger.debug("Name heading found — page rendered")
+        except Exception:
+            logger.warning("Name heading not found after 30s — extracting whatever is available")
+
+        await action_delay(1, 2)
 
         # Check for restriction/CAPTCHA
         if await self._browser.detect_captcha_or_restriction():
@@ -207,8 +229,8 @@ class ProfileAgent:
         try:
             # Navigate to the activity/posts section
             activity_url = profile_url.rstrip("/") + "/recent-activity/all/"
-            await self._browser.safe_navigate(activity_url, timeout=15000)
-            await action_delay(2, 4)
+            await self._browser.safe_navigate(activity_url, timeout=45000, wait_until="load")
+            await action_delay(3, 5)
 
             # Scroll to load posts
             await self._browser.human_scroll("down", 500)
@@ -216,6 +238,7 @@ class ProfileAgent:
 
             # Try to extract post text
             post_selectors = [
+                "span[data-testid='expandable-text-box']",
                 ".feed-shared-update-v2__description .break-words span[dir='ltr']",
                 ".feed-shared-inline-show-more-text span[dir='ltr']",
                 ".feed-shared-text__text-view span[dir='ltr']",
@@ -230,14 +253,14 @@ class ProfileAgent:
                     break
 
             # Navigate back to the profile
-            await self._browser.safe_navigate(profile_url, timeout=15000)
+            await self._browser.safe_navigate(profile_url, timeout=45000, wait_until="load")
             await action_delay(1, 3)
 
         except Exception as e:
             logger.warning(f"Could not extract recent posts: {e}")
             # Navigate back to profile on failure
             try:
-                await self._browser.safe_navigate(profile_url, timeout=15000)
+                await self._browser.safe_navigate(profile_url, timeout=45000, wait_until="load")
             except Exception:
                 pass
 

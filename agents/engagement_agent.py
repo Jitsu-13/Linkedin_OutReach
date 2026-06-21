@@ -67,7 +67,7 @@ class EngagementAgent:
             # Navigate to the user's activity page
             activity_url = profile_url.rstrip("/") + "/recent-activity/all/"
             logger.info(f"👍 Navigating to activity page: {activity_url}")
-            await self._browser.safe_navigate(activity_url, timeout=15000)
+            await self._browser.safe_navigate(activity_url, timeout=45000, wait_until="load")
             await action_delay(2, 4)
 
             # Scroll to load posts
@@ -85,7 +85,7 @@ class EngagementAgent:
                 result["comment_draft"] = comment_result.get("draft", "")
 
             # Navigate back to the profile
-            await self._browser.safe_navigate(profile_url, timeout=15000)
+            await self._browser.safe_navigate(profile_url, timeout=45000, wait_until="load")
             await action_delay(1, 3)
 
         except Exception as e:
@@ -95,7 +95,7 @@ class EngagementAgent:
             )
             # Try to navigate back to profile
             try:
-                await self._browser.safe_navigate(profile_url, timeout=15000)
+                await self._browser.safe_navigate(profile_url, timeout=45000, wait_until="load")
             except Exception:
                 pass
 
@@ -269,6 +269,7 @@ class EngagementAgent:
     async def _get_first_post_text(self) -> str:
         """Extract text from the first visible post."""
         post_text_selectors = [
+            "span[data-testid='expandable-text-box']",
             ".feed-shared-update-v2__description .break-words span[dir='ltr']",
             ".feed-shared-inline-show-more-text span[dir='ltr']",
             ".feed-shared-text__text-view span[dir='ltr']",

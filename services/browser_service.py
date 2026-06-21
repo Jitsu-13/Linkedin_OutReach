@@ -273,7 +273,7 @@ class BrowserService:
         Returns True if logged in, False if login page is shown.
         """
         try:
-            await self.safe_navigate("https://www.linkedin.com/feed/", timeout=15000)
+            await self.safe_navigate("https://www.linkedin.com/feed/", timeout=45000)
             await asyncio.sleep(2)
 
             # Check for feed indicators
@@ -293,58 +293,39 @@ class BrowserService:
 
     async def perform_login(self, email: str, password: str) -> bool:
         """
-        Perform LinkedIn login.
+        Open LinkedIn login page and wait for the user to log in manually.
 
-        Note: This is used only for initial login. Subsequent runs
-        reuse the session via persistent browser context.
+        No auto-fill — the browser window stays open for up to 5 minutes.
+        Once the URL reaches /feed the script continues automatically.
         """
         try:
-            await self.safe_navigate("https://www.linkedin.com/login")
-            await asyncio.sleep(2)
+            await self.safe_navigate("https://www.linkedin.com/login", timeout=45000)
 
-            # Type email
-            await self.human_type('#username', email)
-            await short_delay(0.5, 1.5)
+            logger.info("=" * 55)
+            logger.info("🔑 Browser is open at the LinkedIn login page.")
+            logger.info("   Please type your email and password in the browser,")
+            logger.info("   then click Sign in.")
+            logger.info("   This script will continue automatically once you")
+            logger.info("   reach the LinkedIn feed (up to 5 minutes).")
+            logger.info("=" * 55)
 
-            # Type password
-            await self.human_type('#password', password)
-            await short_delay(0.5, 1.0)
+            # Poll until the user reaches the feed
+            for i in range(60):  # 60 × 5 s = 5 minutes
+                await asyncio.sleep(5)
+                current_url = self._page.url
+                if "/feed" in current_url or "/mynetwork" in current_url:
+                    logger.info("✅ Login detected — continuing pipeline")
+                    return True
+                # Print a reminder every 60 seconds
+                if i > 0 and i % 12 == 0:
+                    remaining = (60 - i) * 5
+                    logger.info(f"   Still waiting for login… {remaining}s left")
 
-            # Click sign in
-            await self.human_click('button[type="submit"]')
-
-            # Wait for redirect
-            await asyncio.sleep(5)
-
-            # Check if login was successful
-            current_url = self._page.url
-            if "/feed" in current_url or "/mynetwork" in current_url:
-                logger.info("✅ LinkedIn login successful")
-                return True
-
-            # Check for verification/CAPTCHA
-            if "/checkpoint" in current_url:
-                logger.warning(
-                    "⚠️  LinkedIn requires verification (CAPTCHA/2FA). "
-                    "Please complete it manually in the browser window."
-                )
-                # Wait for manual intervention (up to 5 minutes)
-                for _ in range(60):
-                    await asyncio.sleep(5)
-                    current_url = self._page.url
-                    if "/feed" in current_url or "/mynetwork" in current_url:
-                        logger.info("✅ Manual verification completed, login successful")
-                        return True
-
-                logger.error("Login timed out waiting for manual verification")
-                return False
-
-            logger.error(f"Login may have failed. Current URL: {current_url}")
+            logger.error("Login timed out — did not reach the feed within 5 minutes")
             return False
 
         except Exception as e:
             logger.error(f"Login error: {e}")
-            await capture_screenshot(self._page, "login_failed", self._screenshot_dir)
             return False
 
     async def detect_captcha_or_restriction(self) -> bool:
@@ -352,25 +333,36 @@ class BrowserService:
         Check if LinkedIn is showing a CAPTCHA or account restriction page.
 
         Returns True if automation should pause.
+
+        NOTE: intentionally avoids searching the full page HTML — LinkedIn's own
+        JS bundles contain words like "captcha" on every normal page, causing
+        false positives. Only the URL and page <title> are checked.
         """
-        current_url = self._page.url
-        page_text = await self._page.content()
+        current_url = self._page.url.lower()
 
-        restriction_indicators = [
-            "/checkpoint/",
+        # LinkedIn always redirects to /checkpoint/ for challenges
+        if "/checkpoint/" in current_url:
+            logger.warning("🛑 Restriction detected: LinkedIn checkpoint URL")
+            await capture_screenshot(self._page, "restriction_detected", self._screenshot_dir)
+            return True
+
+        # Check the page title — much more specific than full HTML
+        try:
+            title = (await self._page.title()).lower()
+        except Exception:
+            title = ""
+
+        title_indicators = [
             "security verification",
-            "unusual activity",
-            "restricted",
-            "captcha",
+            "security check",
             "verify your identity",
+            "unusual activity",
+            "let's do a quick",
         ]
-
-        for indicator in restriction_indicators:
-            if indicator in current_url.lower() or indicator in page_text.lower():
-                logger.warning(f"🛑 Restriction detected: '{indicator}' found")
-                await capture_screenshot(
-                    self._page, "restriction_detected", self._screenshot_dir
-                )
+        for indicator in title_indicators:
+            if indicator in title:
+                logger.warning(f"🛑 Restriction detected in page title: '{indicator}'")
+                await capture_screenshot(self._page, "restriction_detected", self._screenshot_dir)
                 return True
 
         return False
